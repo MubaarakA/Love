@@ -1,0 +1,654 @@
+:root {
+  --ink: #5a1d3a;
+  --ink-soft: #8b4a68;
+  --rose: #e2557b;
+  --rose-deep: #c43d68;
+  --blush: #ffd3de;
+  --cream: #fff6f1;
+
+  --serif: 'Cormorant Garamond', 'Cormorant', Garamond, 'Times New Roman', serif;
+  --script: 'Great Vibes', 'Snell Roundhand', 'Brush Script MT', cursive;
+  --sans: 'Jost', 'Futura', 'Avenir Next', system-ui, sans-serif;
+  --emoji: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+
+  /* Read by the runaway button so it respects notches and home indicators. */
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  position: fixed;
+  inset: 0;
+  background: #f8dbe4;
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  /* One immersive canvas: no panning, pinch-bouncing or pull-to-refresh. */
+  touch-action: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.emoji {
+  font-family: var(--emoji);
+  font-style: normal;
+  font-weight: 400;
+}
+
+/* ---------------------------------------------------------------- layers */
+
+.bg,
+.fx,
+.scene,
+.curtain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bg {
+  z-index: 0;
+}
+.scene {
+  z-index: 1;
+}
+.fx {
+  z-index: 2;
+}
+.curtain {
+  z-index: 40;
+  background: radial-gradient(circle at 50% 45%, #fffaf6, var(--cream) 60%, #fbe9ea);
+}
+
+.scene-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.bg-base {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 80% at 50% -5%, #fff0f3 0%, transparent 58%),
+    radial-gradient(90% 70% at 10% 95%, #f4c3d3 0%, transparent 60%),
+    radial-gradient(80% 70% at 95% 85%, #f9d6c8 0%, transparent 55%),
+    linear-gradient(180deg, #f7d6e0 0%, #fbe6e3 46%, #f2c6d3 100%);
+}
+
+.aurora {
+  position: absolute;
+  width: 85vmax;
+  height: 85vmax;
+  border-radius: 50%;
+  opacity: 0.75;
+}
+.aurora-a {
+  top: -38vmax;
+  left: -28vmax;
+  background: radial-gradient(circle, rgba(255, 226, 236, 0.95), rgba(255, 214, 228, 0) 65%);
+}
+.aurora-b {
+  bottom: -42vmax;
+  right: -30vmax;
+  background: radial-gradient(circle, rgba(246, 210, 255, 0.55), rgba(255, 210, 196, 0.25) 40%, transparent 68%);
+}
+
+.bg-glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 252, 247, 0.95) 0%, rgba(255, 224, 233, 0.65) 32%, transparent 72%),
+    linear-gradient(180deg, rgba(255, 238, 242, 0.5), rgba(255, 220, 228, 0.3));
+}
+
+.cursor-glow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 420px;
+  height: 420px;
+  margin: -210px 0 0 -210px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.5), rgba(255, 236, 242, 0.18) 40%, transparent 68%);
+  opacity: 0;
+  visibility: hidden;
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 85% 75% at 50% 48%, transparent 52%, rgba(146, 58, 98, 0.2) 100%);
+}
+
+/* A lens flare high in the corner, ghosts trailing toward the centre. */
+.flare-rig {
+  position: absolute;
+  inset: 0;
+}
+.flare {
+  position: absolute;
+  top: 9%;
+  right: 12%;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  visibility: hidden;
+}
+.flare i {
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.flare-sun {
+  width: min(38vmin, 300px);
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 244, 232, 0.55) 18%, rgba(255, 220, 230, 0.15) 45%, transparent 70%);
+}
+.flare-ghost {
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+.flare-ghost.g1 {
+  width: 54px;
+  left: -14vw;
+  top: 13vh;
+  background: radial-gradient(circle, rgba(255, 230, 240, 0.28), rgba(255, 255, 255, 0.05) 70%);
+}
+.flare-ghost.g2 {
+  width: 22px;
+  left: -24vw;
+  top: 23vh;
+  background: rgba(255, 245, 230, 0.35);
+  border: 0;
+}
+.flare-ghost.g3 {
+  width: 96px;
+  left: -40vw;
+  top: 39vh;
+  background: radial-gradient(circle, transparent 55%, rgba(240, 200, 255, 0.16) 70%, transparent 76%);
+  border: 0;
+}
+
+.sweep {
+  position: absolute;
+  top: -50%;
+  left: 0;
+  width: 38vw;
+  height: 200%;
+  opacity: 0;
+  visibility: hidden;
+  transform: rotate(18deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55) 50%, transparent);
+}
+
+.flash {
+  position: absolute;
+  inset: -20%;
+  opacity: 0;
+  visibility: hidden;
+  background: radial-gradient(circle at 50% 50%, #fff 0%, rgba(255, 246, 249, 0.85) 18%, rgba(255, 228, 236, 0.35) 40%, transparent 62%);
+}
+
+/* ------------------------------------------------------------ the question */
+
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: max(28px, var(--sat)) max(20px, var(--sar)) max(28px, var(--sab)) max(20px, var(--sal));
+  pointer-events: none;
+}
+
+.greeting {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0 28px;
+  text-align: center;
+  visibility: hidden;
+}
+.greeting p {
+  margin: 0;
+  max-width: 17em;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.75rem, 6vw, 3rem);
+  line-height: 1.2;
+  color: var(--ink);
+  text-shadow: 0 0 28px rgba(255, 255, 255, 0.85);
+  text-wrap: balance;
+}
+
+.ask {
+  position: relative;
+  width: min(100%, 860px);
+  text-align: center;
+  visibility: hidden;
+}
+/* Soft light pooled behind the words so they always read over the petals. */
+.ask::before,
+.halo {
+  content: '';
+  position: absolute;
+  inset: -22% -12%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 249, 245, 0.78), rgba(255, 240, 242, 0.38) 55%, transparent);
+  pointer-events: none;
+}
+
+.question {
+  margin: 0;
+  perspective: 900px;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(2.6rem, 10.5vw, 5.6rem);
+  line-height: 1.02;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55),
+    0 0 42px rgba(255, 255, 255, 0.75);
+  text-wrap: balance;
+}
+
+.word {
+  display: inline-block;
+  white-space: nowrap;
+  transform-origin: 50% 100%;
+}
+.word.accent {
+  font-style: italic;
+  color: var(--rose-deep);
+}
+.char {
+  display: inline-block;
+}
+
+.ornament {
+  display: block;
+  width: min(240px, 58vw);
+  height: auto;
+  margin: clamp(10px, 2.2vh, 22px) auto clamp(22px, 4.5vh, 40px);
+  overflow: visible;
+}
+.ornament-line {
+  fill: none;
+  stroke: #d47895;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+.ornament-heart {
+  fill: var(--rose);
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(18px, 5vw, 32px);
+}
+
+.btn {
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  visibility: hidden;
+}
+.btn:focus-visible {
+  outline: none;
+}
+.btn:focus-visible .btn-face {
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.9),
+    0 0 0 6px rgba(226, 85, 123, 0.55);
+}
+.btn:disabled {
+  cursor: default;
+}
+
+.btn-face {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-height: 58px;
+  min-width: 132px;
+  padding: 0 2.1em;
+  border-radius: 999px;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: clamp(1rem, 3.9vw, 1.12rem);
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+}
+
+.btn-yes .btn-face {
+  color: #fff;
+  background: linear-gradient(135deg, #f8879f 0%, #e85a80 45%, #c93e6a 100%);
+  box-shadow:
+    0 14px 34px -10px rgba(196, 61, 104, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -3px 8px rgba(120, 18, 60, 0.22);
+  text-shadow: 0 1px 2px rgba(110, 16, 56, 0.35);
+  transition: filter 0.3s ease;
+}
+.btn-yes .btn-face::after {
+  content: '';
+  position: absolute;
+  inset: 2px 10% 52% 10%;
+  border-radius: 999px;
+  background: linear-gradient(rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+.btn-yes:hover .btn-face {
+  filter: brightness(1.06) saturate(1.05);
+}
+
+.yes-halo {
+  position: absolute;
+  inset: -16px -18px;
+  border-radius: 999px;
+  --glow: 0.55;
+  background: radial-gradient(closest-side, rgba(255, 128, 164, var(--glow)), rgba(255, 170, 196, 0));
+  filter: blur(8px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.yes-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 160, 188, 0.95);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.no-slot {
+  display: inline-block;
+  flex: none;
+}
+
+.btn-no {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 5;
+  will-change: transform;
+}
+.btn-no .btn-face {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 10px 28px -12px rgba(120, 36, 76, 0.4);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.hint {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 1.5em;
+  margin: clamp(18px, 3.4vh, 28px) auto 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.2rem, 4.6vw, 1.55rem);
+  line-height: 1.3;
+  color: var(--ink-soft);
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.9);
+}
+
+/* ------------------------------------------------------------- the answer */
+
+.finale {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: max(24px, var(--sat)) max(18px, var(--sar)) max(24px, var(--sab)) max(18px, var(--sal));
+  pointer-events: none;
+}
+
+.streaks {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.streak path {
+  fill: none;
+  stroke-linecap: round;
+}
+.streak-glow {
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 7;
+}
+.streak-core {
+  stroke: #fff;
+  stroke-width: 1.6;
+}
+
+.finale-center {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+}
+.finale-center .halo {
+  inset: -30% -6%;
+  z-index: 0;
+  visibility: hidden;
+}
+
+.heart-art {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(96vw, 700px, 100vh);
+  height: auto;
+  transform: translate(-50%, -51%);
+  overflow: visible;
+}
+.heart-soft {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 9;
+  stroke-linejoin: round;
+}
+.heart-line {
+  fill: none;
+  stroke: url(#roseGold);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.chord {
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 0.9;
+  stroke-linecap: round;
+}
+.flourish {
+  fill: none;
+  stroke: url(#roseGold);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.finale-text {
+  position: relative;
+  z-index: 1;
+  padding: 0 8px;
+  text-align: center;
+}
+.final-1 {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(2.3rem, 9vw, 4.7rem);
+  line-height: 1.06;
+  color: var(--ink);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6),
+    0 0 44px rgba(255, 255, 255, 0.85);
+  text-wrap: balance;
+}
+.final-2 {
+  margin: 0.35em 0 0;
+  font-family: var(--script);
+  font-size: clamp(2.1rem, 8.6vw, 3.9rem);
+  line-height: 1.25;
+  color: var(--rose-deep);
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.9);
+  text-wrap: balance;
+  visibility: hidden;
+}
+.final-1 .emoji,
+.greeting .emoji {
+  font-size: 0.62em;
+  vertical-align: 0.14em;
+  margin-left: 0.08em;
+}
+.final-2 .emoji {
+  font-size: 0.72em;
+  vertical-align: 0.1em;
+}
+
+.tap-hint {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(max(22px, var(--sab)) + 6px);
+  margin: 0;
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(90, 29, 58, 0.55);
+  visibility: hidden;
+}
+
+/* ------------------------------------------------------------------ sound */
+
+.sound-toggle {
+  position: fixed;
+  top: calc(var(--sat) + 16px);
+  right: calc(var(--sar) + 16px);
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.42);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 22px -12px rgba(120, 36, 76, 0.45);
+  font-family: var(--emoji);
+  font-size: 1.1rem;
+  cursor: pointer;
+  visibility: hidden;
+  touch-action: manipulation;
+  transition:
+    background 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.sound-toggle span {
+  opacity: 0.5;
+  filter: grayscale(0.6);
+  transition:
+    opacity 0.3s ease,
+    filter 0.3s ease;
+}
+.sound-toggle.is-on {
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 0 0 4px rgba(255, 170, 196, 0.35),
+    0 8px 22px -10px rgba(196, 61, 104, 0.5);
+}
+.sound-toggle.is-on span {
+  opacity: 1;
+  filter: none;
+}
+.sound-toggle:focus-visible {
+  outline: 2px solid var(--rose);
+  outline-offset: 3px;
+}
+
+/* Short landscape phones: tighten the vertical rhythm. */
+@media (max-height: 480px) and (orientation: landscape) {
+  .question {
+    font-size: clamp(2rem, 7.5vh + 2vw, 3.4rem);
+  }
+  .ornament {
+    margin: 6px auto 14px;
+  }
+  .hint {
+    margin-top: 10px;
+  }
+  .btn-face {
+    min-height: 48px;
+  }
+  .final-1 {
+    font-size: clamp(1.9rem, 9vh + 1vw, 3.2rem);
+  }
+  .final-2 {
+    font-size: clamp(1.8rem, 8vh + 1vw, 2.8rem);
+  }
+}
