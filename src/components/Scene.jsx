@@ -1,5 +1,8 @@
 import { useEffect, useImperativeHandle, useRef } from 'react';
-import { RomanceEngine } from '../three/engine';
+import { MemoryEngine } from '../three/engine';
+import { detachAll } from '../lib/motion';
+
+const API = ['setMood', 'drift', 'burst', 'flood', 'sparkle', 'pulse', 'dissolve', 'suspend', 'resume'];
 
 /**
  * Hosts the Three.js engine. The engine owns its canvas, render loop and
@@ -12,10 +15,7 @@ export default function Scene({ ref }) {
 
   useImperativeHandle(
     ref,
-    () => ({
-      celebrate: () => engine.current?.celebrate(),
-      puff: (x, y) => engine.current?.puff(x, y),
-    }),
+    () => detachAll(Object.fromEntries(API.map((name) => [name, (...args) => engine.current?.[name](...args)]))),
     [],
   );
 
@@ -23,7 +23,7 @@ export default function Scene({ ref }) {
     const el = host.current;
     let e;
     try {
-      e = new RomanceEngine(el);
+      e = new MemoryEngine(el);
     } catch (err) {
       // No WebGL: the DOM layers still tell the whole story.
       console.warn('3D effects unavailable:', err);
@@ -31,7 +31,6 @@ export default function Scene({ ref }) {
       return undefined;
     }
     engine.current = e;
-    e.intro();
     return () => {
       e.dispose();
       engine.current = null;

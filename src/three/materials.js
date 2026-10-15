@@ -12,6 +12,7 @@ export function createDustMaterial(pixelRatio) {
       uTime: { value: 0 },
       uOpacity: { value: 0 },
       uBoost: { value: 0 },
+      uGather: { value: 0 },
       uSize: { value: 70 },
       uPixelRatio: { value: pixelRatio },
       uTanHalf: { value: Math.tan(THREE.MathUtils.degToRad(22.5)) },
@@ -19,7 +20,7 @@ export function createDustMaterial(pixelRatio) {
       uCamZ: { value: 12 },
     },
     vertexShader: /* glsl */ `
-      uniform float uTime, uOpacity, uBoost, uSize, uPixelRatio, uTanHalf, uAspect, uCamZ;
+      uniform float uTime, uOpacity, uBoost, uGather, uSize, uPixelRatio, uTanHalf, uAspect, uCamZ;
       attribute float aScale;
       attribute float aPhase;
       attribute vec3 aColor;
@@ -33,6 +34,13 @@ export function createDustMaterial(pixelRatio) {
         float y = mod(position.y * hh + rise + hh, 2.0 * hh) - hh;
         float x = position.x * hw + sin(uTime * 0.22 + aPhase * 6.2831) * 0.35;
         y += cos(uTime * 0.31 + aPhase * 4.0) * 0.18;
+        // Gather: swirl inward toward the centre of the frame.
+        float g = clamp(uGather * (0.6 + 0.4 * aPhase), 0.0, 1.0);
+        float ang = g * 1.8;
+        vec2 swirl = mat2(cos(ang), sin(ang), -sin(ang), cos(ang)) * vec2(x, y) * 0.1;
+        vec2 p = mix(vec2(x, y), swirl, g);
+        x = p.x;
+        y = p.y;
         vec4 mv = modelViewMatrix * vec4(x, y, z, 1.0);
         gl_Position = projectionMatrix * mv;
         gl_PointSize = uSize * aScale * uPixelRatio * (1.0 + uBoost * 0.5) / -mv.z;
