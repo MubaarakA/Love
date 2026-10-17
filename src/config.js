@@ -1,3 +1,8 @@
+// Files in /public must be addressed through Vite's base URL so they also work
+// when the site is hosted in a subfolder (GitHub Pages: /Love/). Full URLs
+// (https://…, YouTube links) are left untouched.
+const asset = (path) => (/^[a-z]+:\/\//i.test(path) ? path : import.meta.env.BASE_URL + path.replace(/^\//, ''));
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  Your memory video.
 //
@@ -5,7 +10,7 @@
 //  or a YouTube link (watch, youtu.be, shorts or embed URLs all work — the
 //  video must allow embedding), e.g. "https://www.youtube.com/watch?v=H5ExSyGTgt4".
 // ─────────────────────────────────────────────────────────────────────────────
-export const MEMORY_VIDEO_URL = "/video/memories.mp4";
+export const MEMORY_VIDEO_URL = asset("/video/memories.mp4");
 
 // Who this is for. Used everywhere in the experience, so it stays consistent.
 export const HER_NAME = 'Zeynab';
@@ -19,11 +24,11 @@ export const FROM_NAME = '';
 //  behind the final message. Add or remove entries freely.
 // ─────────────────────────────────────────────────────────────────────────────
 export const MEMORY_PHOTOS = [
-  { src: '/photos/zeynab-1.jpg', alt: `${HER_NAME}, smiling with her hand on her cheek` },
-  { src: '/photos/zeynab-2.jpg', alt: `${HER_NAME}, chin in her hand` },
-  { src: '/photos/zeynab-3.jpg', alt: `${HER_NAME} in a pink hijab` },
-  { src: '/photos/zeynab-4.jpg', alt: `${HER_NAME}, her face cupped in her hands` },
-  { src: '/photos/zeynab-5.jpg', alt: `${HER_NAME} in a lilac hijab` },
+  { src: asset('/photos/zeynab-1.jpg'), alt: `${HER_NAME}, smiling with her hand on her cheek` },
+  { src: asset('/photos/zeynab-2.jpg'), alt: `${HER_NAME}, chin in her hand` },
+  { src: asset('/photos/zeynab-3.jpg'), alt: `${HER_NAME} in a pink hijab` },
+  { src: asset('/photos/zeynab-4.jpg'), alt: `${HER_NAME}, her face cupped in her hands` },
+  { src: asset('/photos/zeynab-5.jpg'), alt: `${HER_NAME} in a lilac hijab` },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
